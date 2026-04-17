@@ -6,12 +6,12 @@ import 'package:madact15/question.dart';
 import 'package:madact15/quiz_screen.dart';
 
 class FakeApiService extends ApiService {
-  FakeApiService(this.questions);
+  FakeApiService(this._fetchQuestions);
 
-  final List<Question> questions;
+  final Future<List<Question>> Function() _fetchQuestions;
 
   @override
-  Future<List<Question>> fetchQuestions() async => questions;
+  Future<List<Question>> fetchQuestions() => _fetchQuestions();
 }
 
 void main() {
@@ -21,13 +21,15 @@ void main() {
     await tester.pumpWidget(
       MaterialApp(
         home: QuizScreen(
-          apiService: FakeApiService([
-            const Question(
-              question: 'What is the capital of France?',
-              correctAnswer: 'Paris',
-              options: ['Paris', 'London', 'Berlin', 'Madrid'],
-            ),
-          ]),
+          apiService: FakeApiService(
+            () async => [
+              const Question(
+                question: 'What is the capital of France?',
+                correctAnswer: 'Paris',
+                options: ['Paris', 'London', 'Berlin', 'Madrid'],
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -50,18 +52,20 @@ void main() {
     await tester.pumpWidget(
       MaterialApp(
         home: QuizScreen(
-          apiService: FakeApiService([
-            const Question(
-              question: 'What is the capital of France?',
-              correctAnswer: 'Paris',
-              options: ['Paris', 'London', 'Berlin', 'Madrid'],
-            ),
-            const Question(
-              question: 'What color is the sky on a clear day?',
-              correctAnswer: 'Blue',
-              options: ['Green', 'Blue', 'Red', 'Yellow'],
-            ),
-          ]),
+          apiService: FakeApiService(
+            () async => [
+              const Question(
+                question: 'What is the capital of France?',
+                correctAnswer: 'Paris',
+                options: ['Paris', 'London', 'Berlin', 'Madrid'],
+              ),
+              const Question(
+                question: 'What color is the sky on a clear day?',
+                correctAnswer: 'Blue',
+                options: ['Green', 'Blue', 'Red', 'Yellow'],
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -92,5 +96,24 @@ void main() {
 
     expect(find.text('Question 1 of 2'), findsOneWidget);
     expect(find.text('Score: 0'), findsOneWidget);
+  });
+
+  testWidgets('Quiz screen shows an error message when loading fails', (
+    WidgetTester tester,
+  ) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: QuizScreen(
+          apiService: FakeApiService(
+            () async => throw Exception('Network error'),
+          ),
+        ),
+      ),
+    );
+
+    await tester.pump();
+
+    expect(find.text('Unable to load quiz questions.'), findsOneWidget);
+    expect(find.text('Retry'), findsOneWidget);
   });
 }
