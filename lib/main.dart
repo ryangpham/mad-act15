@@ -18,7 +18,7 @@ class QuizApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.indigo),
         useMaterial3: true,
       ),
-      home: const QuizScreen(),
+      home: QuizScreen(),
     );
   }
 }
