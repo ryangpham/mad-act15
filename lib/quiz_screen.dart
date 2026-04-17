@@ -18,6 +18,7 @@ class _QuizScreenState extends State<QuizScreen> {
   int _currentQuestionIndex = 0;
   int _score = 0;
   bool _answered = false;
+  String? _selectedAnswer;
   bool _isLoading = true;
   String? _errorMessage;
 
@@ -35,6 +36,7 @@ class _QuizScreenState extends State<QuizScreen> {
       _currentQuestionIndex = 0;
       _score = 0;
       _answered = false;
+      _selectedAnswer = null;
     });
 
     try {
@@ -97,6 +99,7 @@ class _QuizScreenState extends State<QuizScreen> {
     }
 
     final question = _questions[_currentQuestionIndex];
+    final isLastQuestion = _currentQuestionIndex == _questions.length - 1;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -117,11 +120,48 @@ class _QuizScreenState extends State<QuizScreen> {
           Padding(
             padding: const EdgeInsets.only(bottom: 12),
             child: ElevatedButton(
-              onPressed: _answered ? null : () {},
+              onPressed: _answered ? null : () => _selectAnswer(option),
               child: Text(option),
             ),
           ),
+        if (_selectedAnswer != null) ...[
+          const SizedBox(height: 8),
+          Text(
+            _selectedAnswer == question.correctAnswer
+                ? 'Correct!'
+                : 'Correct answer: ${question.correctAnswer}',
+            style: Theme.of(context).textTheme.bodyLarge,
+          ),
+        ],
+        const Spacer(),
+        ElevatedButton(
+          onPressed: _answered
+              ? () => isLastQuestion ? _loadQuestions() : _nextQuestion()
+              : null,
+          child: Text(isLastQuestion ? 'Restart Quiz' : 'Next Question'),
+        ),
       ],
     );
+  }
+
+  void _selectAnswer(String answer) {
+    final question = _questions[_currentQuestionIndex];
+
+    setState(() {
+      _answered = true;
+      _selectedAnswer = answer;
+
+      if (answer == question.correctAnswer) {
+        _score++;
+      }
+    });
+  }
+
+  void _nextQuestion() {
+    setState(() {
+      _currentQuestionIndex++;
+      _answered = false;
+      _selectedAnswer = null;
+    });
   }
 }
